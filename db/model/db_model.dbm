@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.9.2" last-position="0,29" last-zoom="0.85" max-obj-count="10"
+	 default-schema="public" default-owner="postgres">
+<database name="maennerfestspiele" is-template="false" allow-conns="true" prepend-at-bod="true">
+	<prepended-sql><![CDATA[CREATE EXTENSION IF NOT EXISTS "uuid-ossp";]]></prepended-sql>
+</database>
+
+<schema name="public" layer="0" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<table name="Users" layer="0" collapse-mode="2" pagination="true" attribs-page="0" ext-attribs-page="0" max-obj-count="9">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1660" y="140"/>
+	<column name="ID" not-null="true" default-value="uuid_generate_v1()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="DateCreated" not-null="true" default-value="now()">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="DateChanged" not-null="true" default-value="now()">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="UserName" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="Surname">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="FirstName">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="Email">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="Phone">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="Users_pk" type="pk-constr" table="public.&quot;Users&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+	<initial-data>
+<![CDATA[ID•DateCreated•DateChanged•UserName•Surname•FirstName•Email•Phone⸣
+•2021/03/04•2021/03/04•mr_moto•Münz•Erik•muenzerik@gmail.com•]]>
+	</initial-data>
+</table>
+
+<table name="Players" layer="0" collapse-mode="2" pagination="true" attribs-page="0" ext-attribs-page="0" max-obj-count="4">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1420" y="600"/>
+	<column name="ID" not-null="true" default-value="uuid_generate_v1()">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="Players_pk" type="pk-constr" table="public.&quot;Players&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="ID_Users" index="1"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="Players_uq" index="1"/>
+		<object name="Users_fk" index="0"/>
+	</customidxs>
+</table>
+
+<table name="Tournament" layer="0" collapse-mode="2" pagination="true" attribs-page="0" ext-attribs-page="0" max-obj-count="3">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="900" y="600"/>
+	<column name="ID" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="Season" not-null="true">
+		<type name="date" length="0"/>
+	</column>
+	<column name="Slogan">
+		<type name="varchar" length="0"/>
+		<comment><![CDATA[Ein Motto]]></comment>
+	</column>
+	<constraint name="Tournament_pk" type="pk-constr" table="public.&quot;Tournament&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="Players_has_one_Users" type="rel11" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#a8e0a5"
+	 src-table="public.&quot;Users&quot;"
+	 dst-table="public.&quot;Players&quot;"
+	 src-required="true" dst-required="false"/>
+
+<extension name="uuid-ossp">
+	<schema name="public"/>
+</extension>
+
+<usertype name="discipline_t" configuration="enumeration">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<enumeration values="Single,OneVsOne"/>
+</usertype>
+
+<table name="Discipline" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="460" y="580"/>
+	<column name="ID" not-null="true" default-value="uuid_generate_v1()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="Name" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="type" not-null="true">
+		<type name="public.discipline_t" length="0"/>
+	</column>
+	<constraint name="Discipline_pk" type="pk-constr" table="public.&quot;Discipline&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="Tournament_has_many_Discipline" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#7b5b11"
+	 src-table="public.&quot;Tournament&quot;"
+	 dst-table="public.&quot;Discipline&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="Tournament_has_many_Players" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#e60d4b"
+	 src-table="public.&quot;Tournament&quot;"
+	 dst-table="public.&quot;Players&quot;"
+	 src-required="false" dst-required="false"/>
+
+<table name="Result" layer="0" collapse-mode="2" max-obj-count="8">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="660" y="1020"/>
+	<column name="ID" not-null="true" default-value="uuid_generate_v1()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="DateCreated" not-null="true" default-value="now()">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="DateChanged" not-null="true" default-value="now()">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<constraint name="Score_pk" type="pk-constr" table="public.&quot;Result&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="ID_Discipline" index="3"/>
+		<object name="ID_Players" index="5"/>
+		<object name="ID_Tournament" index="4"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="Discipline_fk" index="1"/>
+		<object name="Players_fk" index="5"/>
+		<object name="Result_uq" index="2"/>
+		<object name="Result_uq1" index="4"/>
+		<object name="Result_uq2" index="6"/>
+		<object name="Tournament_fk" index="3"/>
+	</customidxs>
+</table>
+
+<table name="MatchResult" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1200" y="1300"/>
+	<column name="ID" not-null="true" default-value="uuid_generate_v1()">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="MatchResult_pk" type="pk-constr" table="public.&quot;MatchResult&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="ID_Players" index="2"/>
+		<object name="ID_Result" index="1"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="MatchResult_uq" index="1"/>
+		<object name="MatchResult_uq1" index="3"/>
+		<object name="Players_fk" index="2"/>
+		<object name="Result_fk" index="0"/>
+	</customidxs>
+</table>
+
+<table name="MatchScore" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="180" y="1300"/>
+	<column name="ID" not-null="true" default-value="uuid_generate_v1()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="Score">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="MatchScore_pk" type="pk-constr" table="public.&quot;MatchScore&quot;">
+		<columns names="ID" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="ID_Result" index="1"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="MatchScore_uq" index="1"/>
+		<object name="Result_fk" index="2"/>
+	</customidxs>
+</table>
+
+<relationship name="Result_has_one_Discipline" type="rel11" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#28d22b"
+	 src-table="public.&quot;Discipline&quot;"
+	 dst-table="public.&quot;Result&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="Result_has_one_Tournament" type="rel11" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#8ae56d"
+	 src-table="public.&quot;Tournament&quot;"
+	 dst-table="public.&quot;Result&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="MatchResult_has_one_Result" type="rel11" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#a84912"
+	 src-table="public.&quot;Result&quot;"
+	 dst-table="public.&quot;MatchResult&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="MatchResult_has_one_Opponent_in_Players" type="rel11" layer="0" alias="Opponent"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#c6f17b"
+	 src-table="public.&quot;Players&quot;"
+	 dst-table="public.&quot;MatchResult&quot;"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="-2.84014" y="8.71434"/>
+	</label>
+</relationship>
+
+<relationship name="Result_has_one_Players" type="rel11" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#bc2221"
+	 src-table="public.&quot;Players&quot;"
+	 dst-table="public.&quot;Result&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="MatchScore_has_one_Result" type="rel11" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#39792a"
+	 src-table="public.&quot;Result&quot;"
+	 dst-table="public.&quot;MatchScore&quot;"
+	 src-required="false" dst-required="false"/>
+
+<function name="sync_lastmod"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="trigger" length="0"/>
+	</return-type>
+	<definition><![CDATA[BEGIN
+ NEW."DateChanged" := NOW();
+
+  RETURN NEW;
+END;]]></definition>
+</function>
+
+<trigger name="sync_lastmod" firing-type="BEFORE" per-line="true" constraint="false"
+	 ins-event="false" del-event="false" upd-event="true" trunc-event="false"
+	 table="public.&quot;Users&quot;">
+		<function signature="public.sync_lastmod()"/>
+		<columns names="&quot;DateChanged&quot;"/>
+</trigger>
+
+<trigger name="sync_lastmod" firing-type="BEFORE" per-line="true" constraint="false"
+	 ins-event="false" del-event="false" upd-event="true" trunc-event="false"
+	 table="public.&quot;Result&quot;">
+		<function signature="public.sync_lastmod()"/>
+</trigger>
+
+</dbmodel>
