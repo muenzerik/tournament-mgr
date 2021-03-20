@@ -1,3 +1,9 @@
 venv
 **/__pycache__/**
+__pycache__
 .flaskenv
+.vscode
+log.html
+output.xml
+report.html
+selenium-screenshot*

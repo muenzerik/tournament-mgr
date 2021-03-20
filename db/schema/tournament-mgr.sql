@@ -17,9 +17,9 @@ SET check_function_bodies = false;
 -- -- ddl-end --
 -- 
 
--- object: public."Users" | type: TABLE --
--- DROP TABLE IF EXISTS public."Users" CASCADE;
-CREATE TABLE public."Users" (
+-- object: public.users | type: TABLE --
+-- DROP TABLE IF EXISTS public.users CASCADE;
+CREATE TABLE public.users (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"DateCreated" timestamp with time zone NOT NULL DEFAULT now(),
 	"DateChanged" timestamp with time zone NOT NULL DEFAULT now(),
@@ -28,60 +28,51 @@ CREATE TABLE public."Users" (
 	"FirstName" varchar,
 	"Email" varchar,
 	"Phone" varchar,
-	CONSTRAINT "Users_pk" PRIMARY KEY ("ID")
+	CONSTRAINT users_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
--- ALTER TABLE public."Users" OWNER TO postgres;
+-- ALTER TABLE public.users OWNER TO postgres;
 -- ddl-end --
 
-INSERT INTO public."Users" ("ID", "DateCreated", "DateChanged", "UserName", "Surname", "FirstName", "Email", "Phone") VALUES (DEFAULT, E'2021/03/04', E'2021/03/04', E'mr_moto', E'Münz', E'Erik', E'muenzerik@gmail.com', DEFAULT);
--- ddl-end --
-
--- object: public."Players" | type: TABLE --
--- DROP TABLE IF EXISTS public."Players" CASCADE;
-CREATE TABLE public."Players" (
+-- object: public.players | type: TABLE --
+-- DROP TABLE IF EXISTS public.players CASCADE;
+CREATE TABLE public.players (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
-	"ID_Users" uuid NOT NULL,
-	"ID_Tournament" uuid,
-	CONSTRAINT "Players_pk" PRIMARY KEY ("ID")
+	"ID_tournament" uuid,
+	"ID_users" uuid NOT NULL,
+	CONSTRAINT players_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
--- ALTER TABLE public."Players" OWNER TO postgres;
+-- ALTER TABLE public.players OWNER TO postgres;
 -- ddl-end --
 
--- object: public."Tournament" | type: TABLE --
--- DROP TABLE IF EXISTS public."Tournament" CASCADE;
-CREATE TABLE public."Tournament" (
+-- object: public.tournament | type: TABLE --
+-- DROP TABLE IF EXISTS public.tournament CASCADE;
+CREATE TABLE public.tournament (
 	"ID" uuid NOT NULL,
 	"Season" date NOT NULL,
 	"Slogan" varchar,
-	CONSTRAINT "Tournament_pk" PRIMARY KEY ("ID")
+	CONSTRAINT tournament_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
-COMMENT ON COLUMN public."Tournament"."Slogan" IS E'Ein Motto';
+COMMENT ON COLUMN public.tournament."Slogan" IS E'Ein Motto';
 -- ddl-end --
--- ALTER TABLE public."Tournament" OWNER TO postgres;
+-- ALTER TABLE public.tournament OWNER TO postgres;
 -- ddl-end --
 
--- object: "Users_fk" | type: CONSTRAINT --
--- ALTER TABLE public."Players" DROP CONSTRAINT IF EXISTS "Users_fk" CASCADE;
-ALTER TABLE public."Players" ADD CONSTRAINT "Users_fk" FOREIGN KEY ("ID_Users")
-REFERENCES public."Users" ("ID") MATCH FULL
+-- object: users_fk | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS users_fk CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT users_fk FOREIGN KEY ("ID_users")
+REFERENCES public.users ("ID") MATCH FULL
 ON DELETE RESTRICT ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "Players_uq" | type: CONSTRAINT --
--- ALTER TABLE public."Players" DROP CONSTRAINT IF EXISTS "Players_uq" CASCADE;
-ALTER TABLE public."Players" ADD CONSTRAINT "Players_uq" UNIQUE ("ID_Users");
--- ddl-end --
-
--- object: "uuid-ossp" | type: EXTENSION --
--- DROP EXTENSION IF EXISTS "uuid-ossp" CASCADE;
-CREATE EXTENSION "uuid-ossp"
-WITH SCHEMA public;
+-- object: players_uq | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS players_uq CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT players_uq UNIQUE ("ID_users");
 -- ddl-end --
 
 -- object: public.discipline_t | type: TYPE --
@@ -92,146 +83,146 @@ CREATE TYPE public.discipline_t AS
 -- ALTER TYPE public.discipline_t OWNER TO postgres;
 -- ddl-end --
 
--- object: public."Discipline" | type: TABLE --
--- DROP TABLE IF EXISTS public."Discipline" CASCADE;
-CREATE TABLE public."Discipline" (
+-- object: public.discipline | type: TABLE --
+-- DROP TABLE IF EXISTS public.discipline CASCADE;
+CREATE TABLE public.discipline (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"Name" varchar NOT NULL,
 	type public.discipline_t NOT NULL,
-	"ID_Tournament" uuid,
-	CONSTRAINT "Discipline_pk" PRIMARY KEY ("ID")
+	"ID_tournament" uuid,
+	CONSTRAINT discipline_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
--- ALTER TABLE public."Discipline" OWNER TO postgres;
+-- ALTER TABLE public.discipline OWNER TO postgres;
 -- ddl-end --
 
--- object: "Tournament_fk" | type: CONSTRAINT --
--- ALTER TABLE public."Discipline" DROP CONSTRAINT IF EXISTS "Tournament_fk" CASCADE;
-ALTER TABLE public."Discipline" ADD CONSTRAINT "Tournament_fk" FOREIGN KEY ("ID_Tournament")
-REFERENCES public."Tournament" ("ID") MATCH FULL
+-- object: tournament_fk | type: CONSTRAINT --
+-- ALTER TABLE public.discipline DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
+ALTER TABLE public.discipline ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
+REFERENCES public.tournament ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "Tournament_fk" | type: CONSTRAINT --
--- ALTER TABLE public."Players" DROP CONSTRAINT IF EXISTS "Tournament_fk" CASCADE;
-ALTER TABLE public."Players" ADD CONSTRAINT "Tournament_fk" FOREIGN KEY ("ID_Tournament")
-REFERENCES public."Tournament" ("ID") MATCH FULL
+-- object: tournament_fk | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
+REFERENCES public.tournament ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: public."Result" | type: TABLE --
--- DROP TABLE IF EXISTS public."Result" CASCADE;
-CREATE TABLE public."Result" (
+-- object: public.result | type: TABLE --
+-- DROP TABLE IF EXISTS public.result CASCADE;
+CREATE TABLE public.result (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"DateCreated" timestamp with time zone NOT NULL DEFAULT now(),
 	"DateChanged" timestamp with time zone NOT NULL DEFAULT now(),
-	"ID_Discipline" uuid,
-	"ID_Tournament" uuid,
-	"ID_Players" uuid,
-	CONSTRAINT "Score_pk" PRIMARY KEY ("ID")
+	"ID_discipline" uuid,
+	"ID_tournament" uuid,
+	"ID_players" uuid,
+	CONSTRAINT result_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
--- ALTER TABLE public."Result" OWNER TO postgres;
+-- ALTER TABLE public.result OWNER TO postgres;
 -- ddl-end --
 
--- object: public."MatchResult" | type: TABLE --
--- DROP TABLE IF EXISTS public."MatchResult" CASCADE;
-CREATE TABLE public."MatchResult" (
+-- object: public.match_result | type: TABLE --
+-- DROP TABLE IF EXISTS public.match_result CASCADE;
+CREATE TABLE public.match_result (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
-	"ID_Result" uuid,
-	"ID_Players" uuid,
-	CONSTRAINT "MatchResult_pk" PRIMARY KEY ("ID")
+	"ID_result" uuid,
+	"ID_players" uuid,
+	CONSTRAINT match_result_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
--- ALTER TABLE public."MatchResult" OWNER TO postgres;
+-- ALTER TABLE public.match_result OWNER TO postgres;
 -- ddl-end --
 
--- object: public."MatchScore" | type: TABLE --
--- DROP TABLE IF EXISTS public."MatchScore" CASCADE;
-CREATE TABLE public."MatchScore" (
+-- object: public.match_score | type: TABLE --
+-- DROP TABLE IF EXISTS public.match_score CASCADE;
+CREATE TABLE public.match_score (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
-	"ID_Result" uuid,
 	"Score" smallint,
-	CONSTRAINT "MatchScore_pk" PRIMARY KEY ("ID")
+	"ID_result" uuid,
+	CONSTRAINT match_score_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
--- ALTER TABLE public."MatchScore" OWNER TO postgres;
+-- ALTER TABLE public.match_score OWNER TO postgres;
 -- ddl-end --
 
--- object: "Discipline_fk" | type: CONSTRAINT --
--- ALTER TABLE public."Result" DROP CONSTRAINT IF EXISTS "Discipline_fk" CASCADE;
-ALTER TABLE public."Result" ADD CONSTRAINT "Discipline_fk" FOREIGN KEY ("ID_Discipline")
-REFERENCES public."Discipline" ("ID") MATCH FULL
+-- object: discipline_fk | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS discipline_fk CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT discipline_fk FOREIGN KEY ("ID_discipline")
+REFERENCES public.discipline ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "Result_uq" | type: CONSTRAINT --
--- ALTER TABLE public."Result" DROP CONSTRAINT IF EXISTS "Result_uq" CASCADE;
-ALTER TABLE public."Result" ADD CONSTRAINT "Result_uq" UNIQUE ("ID_Discipline");
+-- object: result_uq | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS result_uq CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT result_uq UNIQUE ("ID_discipline");
 -- ddl-end --
 
--- object: "Tournament_fk" | type: CONSTRAINT --
--- ALTER TABLE public."Result" DROP CONSTRAINT IF EXISTS "Tournament_fk" CASCADE;
-ALTER TABLE public."Result" ADD CONSTRAINT "Tournament_fk" FOREIGN KEY ("ID_Tournament")
-REFERENCES public."Tournament" ("ID") MATCH FULL
+-- object: tournament_fk | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
+REFERENCES public.tournament ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "Result_uq1" | type: CONSTRAINT --
--- ALTER TABLE public."Result" DROP CONSTRAINT IF EXISTS "Result_uq1" CASCADE;
-ALTER TABLE public."Result" ADD CONSTRAINT "Result_uq1" UNIQUE ("ID_Tournament");
+-- object: result_uq1 | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS result_uq1 CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT result_uq1 UNIQUE ("ID_tournament");
 -- ddl-end --
 
--- object: "Result_fk" | type: CONSTRAINT --
--- ALTER TABLE public."MatchResult" DROP CONSTRAINT IF EXISTS "Result_fk" CASCADE;
-ALTER TABLE public."MatchResult" ADD CONSTRAINT "Result_fk" FOREIGN KEY ("ID_Result")
-REFERENCES public."Result" ("ID") MATCH FULL
+-- object: result_fk | type: CONSTRAINT --
+-- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS result_fk CASCADE;
+ALTER TABLE public.match_result ADD CONSTRAINT result_fk FOREIGN KEY ("ID_result")
+REFERENCES public.result ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "MatchResult_uq" | type: CONSTRAINT --
--- ALTER TABLE public."MatchResult" DROP CONSTRAINT IF EXISTS "MatchResult_uq" CASCADE;
-ALTER TABLE public."MatchResult" ADD CONSTRAINT "MatchResult_uq" UNIQUE ("ID_Result");
+-- object: match_result_uq | type: CONSTRAINT --
+-- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS match_result_uq CASCADE;
+ALTER TABLE public.match_result ADD CONSTRAINT match_result_uq UNIQUE ("ID_result");
 -- ddl-end --
 
--- object: "Players_fk" | type: CONSTRAINT --
--- ALTER TABLE public."MatchResult" DROP CONSTRAINT IF EXISTS "Players_fk" CASCADE;
-ALTER TABLE public."MatchResult" ADD CONSTRAINT "Players_fk" FOREIGN KEY ("ID_Players")
-REFERENCES public."Players" ("ID") MATCH FULL
+-- object: players_fk | type: CONSTRAINT --
+-- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS players_fk CASCADE;
+ALTER TABLE public.match_result ADD CONSTRAINT players_fk FOREIGN KEY ("ID_players")
+REFERENCES public.players ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "MatchResult_uq1" | type: CONSTRAINT --
--- ALTER TABLE public."MatchResult" DROP CONSTRAINT IF EXISTS "MatchResult_uq1" CASCADE;
-ALTER TABLE public."MatchResult" ADD CONSTRAINT "MatchResult_uq1" UNIQUE ("ID_Players");
+-- object: match_result_uq1 | type: CONSTRAINT --
+-- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS match_result_uq1 CASCADE;
+ALTER TABLE public.match_result ADD CONSTRAINT match_result_uq1 UNIQUE ("ID_players");
 -- ddl-end --
 
--- object: "Players_fk" | type: CONSTRAINT --
--- ALTER TABLE public."Result" DROP CONSTRAINT IF EXISTS "Players_fk" CASCADE;
-ALTER TABLE public."Result" ADD CONSTRAINT "Players_fk" FOREIGN KEY ("ID_Players")
-REFERENCES public."Players" ("ID") MATCH FULL
+-- object: players_fk | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS players_fk CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT players_fk FOREIGN KEY ("ID_players")
+REFERENCES public.players ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "Result_uq2" | type: CONSTRAINT --
--- ALTER TABLE public."Result" DROP CONSTRAINT IF EXISTS "Result_uq2" CASCADE;
-ALTER TABLE public."Result" ADD CONSTRAINT "Result_uq2" UNIQUE ("ID_Players");
+-- object: result_uq2 | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS result_uq2 CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT result_uq2 UNIQUE ("ID_players");
 -- ddl-end --
 
--- object: "Result_fk" | type: CONSTRAINT --
--- ALTER TABLE public."MatchScore" DROP CONSTRAINT IF EXISTS "Result_fk" CASCADE;
-ALTER TABLE public."MatchScore" ADD CONSTRAINT "Result_fk" FOREIGN KEY ("ID_Result")
-REFERENCES public."Result" ("ID") MATCH FULL
+-- object: result_fk | type: CONSTRAINT --
+-- ALTER TABLE public.match_score DROP CONSTRAINT IF EXISTS result_fk CASCADE;
+ALTER TABLE public.match_score ADD CONSTRAINT result_fk FOREIGN KEY ("ID_result")
+REFERENCES public.result ("ID") MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: "MatchScore_uq" | type: CONSTRAINT --
--- ALTER TABLE public."MatchScore" DROP CONSTRAINT IF EXISTS "MatchScore_uq" CASCADE;
-ALTER TABLE public."MatchScore" ADD CONSTRAINT "MatchScore_uq" UNIQUE ("ID_Result");
+-- object: match_score_uq | type: CONSTRAINT --
+-- ALTER TABLE public.match_score DROP CONSTRAINT IF EXISTS match_score_uq CASCADE;
+ALTER TABLE public.match_score ADD CONSTRAINT match_score_uq UNIQUE ("ID_result");
 -- ddl-end --
 
 -- object: public.sync_lastmod | type: FUNCTION --
@@ -255,19 +246,19 @@ $$;
 -- ddl-end --
 
 -- object: sync_lastmod | type: TRIGGER --
--- DROP TRIGGER IF EXISTS sync_lastmod ON public."Users" CASCADE;
+-- DROP TRIGGER IF EXISTS sync_lastmod ON public.users CASCADE;
 CREATE TRIGGER sync_lastmod
 	BEFORE UPDATE OF "DateChanged"
-	ON public."Users"
+	ON public.users
 	FOR EACH ROW
 	EXECUTE PROCEDURE public.sync_lastmod();
 -- ddl-end --
 
 -- object: sync_lastmod | type: TRIGGER --
--- DROP TRIGGER IF EXISTS sync_lastmod ON public."Result" CASCADE;
+-- DROP TRIGGER IF EXISTS sync_lastmod ON public.result CASCADE;
 CREATE TRIGGER sync_lastmod
 	BEFORE UPDATE
-	ON public."Result"
+	ON public.result
 	FOR EACH ROW
 	EXECUTE PROCEDURE public.sync_lastmod();
 -- ddl-end --
