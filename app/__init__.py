@@ -9,8 +9,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy_utils import database_exists, create_database
-
 import re
+from flask_login import LoginManager
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -56,4 +56,9 @@ if not database_exists(engine.url):
 
     logging.info('...done')
 
+#load the flask login manager
+login = LoginManager(app)
+login.login_view = 'login'
+
+#finally, add the routing logic
 from app import routes

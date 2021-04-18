@@ -28,6 +28,7 @@ CREATE TABLE public.users (
 	"FirstName" varchar,
 	"Email" varchar,
 	"Phone" varchar,
+	"PasswordHash" varchar,
 	CONSTRAINT users_pk PRIMARY KEY ("ID")
 
 );
