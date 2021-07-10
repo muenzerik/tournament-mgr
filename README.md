@@ -11,4 +11,6 @@ Make sure, you are in the root of the workspace
 robot test
 
 ### How to Run
- TBD
+ 
+ flask run
+ 
