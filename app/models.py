@@ -50,3 +50,15 @@ class Tournaments(Base):
 
     def get_season(self):
         return self.Season
+
+class Disciplines(Base):
+    __table__ = Table('discipline', metadata, autoload=True)   
+
+    def get_id(self):
+        return self.ID
+
+    def get_name(self):
+        return self.Name
+
+    def get_type(self):
+        return self.type
