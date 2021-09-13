@@ -3,6 +3,7 @@ from app.forms import LoginForm, RegistrationForm, CreateTournamentForm
 from flask_login import current_user, login_user, login_required, logout_user
 from app.models import Tournaments, Users
 
+
 from app import app, engine
 from sqlalchemy.orm import Session
 session = Session(engine)
