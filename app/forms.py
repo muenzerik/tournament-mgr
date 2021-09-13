@@ -1,11 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from app.models import Users
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired
+from app.models import Users, Tournaments
 
 from app import app, engine
 from sqlalchemy.orm import Session
 session = Session(engine)
+
+#User Login Stuff...
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -30,3 +32,19 @@ class RegistrationForm(FlaskForm):
         user = session.query(Users).filter_by(Email=email.data).first()
         if user is not None:
             raise ValidationError('Please use a different email address.')
+
+#Admin Stuff...
+
+class CreateTournamentForm(FlaskForm):
+    name = StringField('Tournament Name', validators=[DataRequired()])
+    season = DateField('Season', validators=[InputRequired()], format='%Y')
+    create = SubmitField('Create')
+
+    def validate_tournament_creation(self, name):
+        names = session.query(Tournaments).filter_by(Name=name.data).first()
+        if names is not None:
+            raise ValidationError('Please use a different name.')
+
+    #TODO: Validate season not older than now
+
+    #TODO: Validate no entry with same name AND season

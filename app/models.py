@@ -38,3 +38,15 @@ class Users(UserMixin, Base):
 @login.user_loader
 def load_user(id):
     return session.query(Users).get(id)
+
+class Tournaments(Base):
+    __table__ = Table('tournament', metadata, autoload=True)   
+
+    def get_id(self):
+        return self.ID
+
+    def get_name(self):
+        return self.Name
+
+    def get_season(self):
+        return self.Season

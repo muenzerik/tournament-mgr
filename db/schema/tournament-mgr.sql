@@ -36,24 +36,20 @@ CREATE TABLE public.users (
 -- ALTER TABLE public.users OWNER TO postgres;
 -- ddl-end --
 
--- object: public.players | type: TABLE --
--- DROP TABLE IF EXISTS public.players CASCADE;
-CREATE TABLE public.players (
-	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
-	"ID_tournament" uuid,
-	"ID_users" uuid NOT NULL,
-	CONSTRAINT players_pk PRIMARY KEY ("ID")
-
-);
+-- object: public.player_status | type: TYPE --
+-- DROP TYPE IF EXISTS public.player_status CASCADE;
+CREATE TYPE public.player_status AS
+ ENUM ('inactive','active');
 -- ddl-end --
--- ALTER TABLE public.players OWNER TO postgres;
+-- ALTER TYPE public.player_status OWNER TO postgres;
 -- ddl-end --
 
 -- object: public.tournament | type: TABLE --
 -- DROP TABLE IF EXISTS public.tournament CASCADE;
 CREATE TABLE public.tournament (
-	"ID" uuid NOT NULL,
+	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"Season" date NOT NULL,
+	"Name" varchar,
 	"Slogan" varchar,
 	CONSTRAINT tournament_pk PRIMARY KEY ("ID")
 
@@ -64,16 +60,18 @@ COMMENT ON COLUMN public.tournament."Slogan" IS E'Ein Motto';
 -- ALTER TABLE public.tournament OWNER TO postgres;
 -- ddl-end --
 
--- object: users_fk | type: CONSTRAINT --
--- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS users_fk CASCADE;
-ALTER TABLE public.players ADD CONSTRAINT users_fk FOREIGN KEY ("ID_users")
-REFERENCES public.users ("ID") MATCH FULL
-ON DELETE RESTRICT ON UPDATE CASCADE;
--- ddl-end --
+-- object: public.players | type: TABLE --
+-- DROP TABLE IF EXISTS public.players CASCADE;
+CREATE TABLE public.players (
+	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
+	status public.player_status NOT NULL,
+	"ID_tournament" uuid,
+	"ID_users" uuid NOT NULL,
+	CONSTRAINT players_pk PRIMARY KEY ("ID")
 
--- object: players_uq | type: CONSTRAINT --
--- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS players_uq CASCADE;
-ALTER TABLE public.players ADD CONSTRAINT players_uq UNIQUE ("ID_users");
+);
+-- ddl-end --
+-- ALTER TABLE public.players OWNER TO postgres;
 -- ddl-end --
 
 -- object: public.discipline_t | type: TYPE --
@@ -262,6 +260,18 @@ CREATE TRIGGER sync_lastmod
 	ON public.result
 	FOR EACH ROW
 	EXECUTE PROCEDURE public.sync_lastmod();
+-- ddl-end --
+
+-- object: users_fk | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS users_fk CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT users_fk FOREIGN KEY ("ID_users")
+REFERENCES public.users ("ID") MATCH FULL
+ON DELETE RESTRICT ON UPDATE CASCADE;
+-- ddl-end --
+
+-- object: players_uq | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS players_uq CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT players_uq UNIQUE ("ID_users");
 -- ddl-end --
 
 

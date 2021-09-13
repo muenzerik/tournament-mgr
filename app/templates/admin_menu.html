@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Menu{% endblock %}
+
+{% block main %}
+
+    <h1>Admin Menu</h1>
+
+    <h2>Tournaments</h2>
+
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.name.label }}<br>
+            {{ form.name(size=32) }}<br>
+            {% for error in form.name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.season.label }}<br>
+            {{ form.season(size=32) }}<br>
+            {% for error in form.season.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.create() }}</p>
+    </form>
+
+    <table id="data" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Tournament Name</th>
+            <th>Season</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tournamentlist %}
+            <tr>
+              <td>{{ t.Name }}</td>
+              <td>{{ t.Season }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+<!--
+<form method ="post" action="">
+
+    <div class="form-group">
+        <label for="inputTounamentName">Tournament Name</label>
+        <input class="form-control" id="inputTounamentName" placeholder="type name">
+    </div>
+
+    <button name="create" value='create' type="submit" class="btn btn-primary">Create</button>
+
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Select Tournament
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <a class="dropdown-item" href="#">Action</a>
+        <a class="dropdown-item" href="#">Another action</a>
+        <a class="dropdown-item" href="#">Something else here</a>
+        </div>
+    </div>
+
+    <button name="manage" value='manage' type="submit" class="btn btn-primary">Manage</button>
+</form> 
+-->
+
+
+
+    <h2>Tournament xxx</h2>
+
+    <p>TBD</p>
+
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable();
+    });
+  </script>
+{% endblock %}

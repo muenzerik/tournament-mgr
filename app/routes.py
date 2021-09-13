@@ -1,7 +1,7 @@
-from flask import render_template, redirect, flash, url_for
-from app.forms import LoginForm, RegistrationForm
+from flask import render_template, redirect, flash, url_for, request
+from app.forms import LoginForm, RegistrationForm, CreateTournamentForm
 from flask_login import current_user, login_user, login_required, logout_user
-from app.models import Users
+from app.models import Tournaments, Users
 
 from app import app, engine
 from sqlalchemy.orm import Session
@@ -60,6 +60,39 @@ def time_schedule():
 @login_required
 def image_gallery():
     return render_template('image_gallery.html', current_user=current_user)
+
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin_menu():
+    form = CreateTournamentForm()
+    if form.validate_on_submit():
+        #TODO: check whether it already exists
+
+        #create tournament in DB
+        tournament = Tournaments(Name=form.name.data, Season=form.season.data)
+        session.add(tournament)
+        session.commit()
+        flash('Tornament Created!')
+
+    tournamentlist = session.query(Tournaments.Name, Tournaments.Season)
+
+    for t in tournamentlist:
+        print(t)
+
+    if request.method == "POST":
+        if request.form.get('create'):
+            
+
+
+            print('create')
+            pass
+        elif request.form.get('manage'):
+            # do something else
+            pass
+    elif request.method == 'GET':
+        # do something
+        pass
+    return render_template('admin_menu.html', title='Admin', form=form, current_user=current_user, tournamentlist=tournamentlist)
 
 @app.route('/news')
 def news():
