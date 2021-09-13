@@ -1,10 +1,11 @@
 from flask import render_template, redirect, flash, url_for, request
-from app.forms import LoginForm, RegistrationForm, CreateTournamentForm
+from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm
 from flask_login import current_user, login_user, login_required, logout_user
-from app.models import Tournaments, Users
+from app.models import Tournaments, Users, Disciplines
 
 
 from app import app, engine
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 session = Session(engine)
 
@@ -77,6 +78,29 @@ def admin_menu():
 
     tournamentlist = session.query(Tournaments.Name, Tournaments.Season)
 
+    disciplineform = AdminDisciplineForm()
+    if disciplineform.validate_on_submit():
+        #TODO: check whether it already exists
+
+        discipline = Disciplines(Name=disciplineform.name.data, type=dict(disciplineform.type.choices).get(disciplineform.type.data))
+
+        if disciplineform.action.data == 'create':
+            session.add(discipline)
+            session.commit()
+            flash('discipline created!')
+        elif disciplineform.action.data == 'modify':
+            flash('discipline modified!')
+        elif disciplineform.action.data == 'delete':
+            stmt = delete(Disciplines).where(Disciplines.Name == disciplineform.name.data and Disciplines.type == dict(disciplineform.type.choices).get(disciplineform.type.data) ).execution_options(synchronize_session="fetch")
+            session.execute(stmt)
+
+#            session.delete(discipline)
+            session.commit()
+            flash('discipline deleted!')
+
+
+    disciplinelist = session.query(Disciplines.Name, Disciplines.type)
+
     for t in tournamentlist:
         print(t)
 
@@ -93,7 +117,7 @@ def admin_menu():
     elif request.method == 'GET':
         # do something
         pass
-    return render_template('admin_menu.html', title='Admin', form=form, current_user=current_user, tournamentlist=tournamentlist)
+    return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist)
 
 @app.route('/news')
 def news():

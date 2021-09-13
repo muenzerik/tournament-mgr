@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired
 from app.models import Users, Tournaments
 
@@ -48,3 +48,11 @@ class CreateTournamentForm(FlaskForm):
     #TODO: Validate season not older than now
 
     #TODO: Validate no entry with same name AND season
+
+class AdminDisciplineForm(FlaskForm):
+    name = StringField('Tournament Name', validators=[DataRequired()])
+    type = SelectField(u'Type', choices=[('single', 'Single'), ('onevsone', 'OneVsOne')], validators=[DataRequired()])
+    action = SelectField(u'Action', choices=[('create', 'Create'), ('modify', 'Modify'), ('delete', 'Delete')], validators=[DataRequired()])
+    create = SubmitField('Do Action')
+
+    #TODO: Validate unique

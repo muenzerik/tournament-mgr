@@ -44,6 +44,52 @@
         </tbody>
       </table>
 
+      <hr style="width:100%;text-align:left;margin-left:0">
+
+      <form action="" method="post" novalidate>
+        {{ disciplineform.hidden_tag() }}
+        <p>
+            {{ disciplineform.name.label }}<br>
+            {{ disciplineform.name(size=32) }}<br>
+            {% for error in disciplineform.name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ disciplineform.type.label }}<br>
+            {{ disciplineform.type }}<br>
+            {% for error in disciplineform.type.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ disciplineform.action.label }}<br>
+            {{ disciplineform.action }}<br>
+            {% for error in disciplineform.action.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ disciplineform.create() }}</p>
+    </form>
+
+    <table id="data" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Discipline Name</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in disciplinelist %}
+            <tr>
+              <td>{{ d.Name }}</td>
+              <td>{{ d.type }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <hr style="width:100%;text-align:left;margin-left:0">
 <!--
 <form method ="post" action="">
 
