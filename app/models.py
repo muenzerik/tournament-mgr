@@ -68,3 +68,9 @@ class TournamentsDisciplinesMap(Base):
 
 class TournamentsPlayersMap(Base):
     __table__ = Table('players', metadata, autoload=True)
+
+class Results(Base):
+    __table__ = Table('result', metadata, autoload=True)
+
+class Score(Base):
+    __table__ = Table('match_score', metadata, autoload=True) 

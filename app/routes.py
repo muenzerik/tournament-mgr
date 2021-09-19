@@ -1,12 +1,12 @@
 from flask import render_template, redirect, flash, url_for, request
 from sqlalchemy.orm.util import join
-from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm
+from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm, SingleDisciplineForm
 from flask_login import current_user, login_user, login_required, logout_user
-from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
+from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap, Results, Score
 
 
 from app import app, engine
-from sqlalchemy import delete, desc,  asc
+from sqlalchemy import delete, desc,  asc, func
 from sqlalchemy.orm import Session
 session = Session(engine)
 
@@ -52,25 +52,95 @@ def register():
 @app.route('/disciplines')
 @login_required
 def disciplines():
-    tournament = session.query(Tournaments).order_by(asc(Tournaments.Season)).first()
+    tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
     disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
     return render_template('disciplines.html', current_user=current_user, disciplinelist=disciplinelist)
 
-@app.route('/disciplines/<discipline>')
+@app.route('/disciplines/<discipline>', methods=['GET', 'POST'])
 @login_required
 def discipline(discipline):
-    tournament = session.query(Tournaments).order_by(asc(Tournaments.Season)).first()
+    tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
     disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
 
     for d in disciplinelist:
         if d[1].Name == discipline:
             print('Discpiline to render found')
             if d[1].type == 'Single':
-                return render_template('discipline_single.html', current_user=current_user, discipline=d)
+                form = SingleDisciplineForm()
+                if form.validate_on_submit():
+                    player = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_users == current_user.ID).first()
+
+                    if session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == player.ID).count() > 0:
+                        
+                        #update tournament result of the given user and discipline DB...
+                        result = session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == player.ID)
+                        #TODO: date changed does not work yet (update not possible due to not workingfunc.current_timestamp())
+                        #.update({'DateChanged': (func.current_timestamp())})
+
+                        #create the score entry and link it to the result entry in the DB...
+                        score = session.query(Score).filter(Score.ID_result == result[0].ID).update({'Score': (form.score.data)})
+                        session.add(score)
+                        session.commit()
+
+                        flash('Score modified!')
+                    else:
+
+                        #create tournament result of the given user and discipline DB...
+                        result = Results(DateCreated=func.current_timestamp(), DateChanged=func.current_timestamp(), ID_discipline=d[1].ID, ID_tournament=tournament.ID, ID_players=player.ID)
+                        session.add(result)
+                        session.commit()
+
+                        #create the score entry and link it to the result entry in the DB...
+                        print(result.ID)
+                        score = Score(ID_result=result.ID, Score=form.score.data)
+                        session.add(score)
+                        session.commit()
+
+                        flash('Score added!')
+
+                return render_template('discipline_single.html', current_user=current_user, discipline=d, form=form)
             elif d[1].type == 'OneVsOne':
-                return render_template('discipline_one_vs_one.html', current_user=current_user, discipline=d)
+                form = SingleDisciplineForm()
+                return render_template('discipline_one_vs_one.html', current_user=current_user, discipline=d, form=form)
 
     return "Record not found", 400
+
+@app.route('/disciplines/results')
+@login_required
+def results():
+    tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
+    disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+    return render_template('results.html', current_user=current_user, disciplinelist=disciplinelist)
+
+
+@app.route('/disciplines/result/<discipline>', methods=['GET', 'POST'])
+@login_required
+def result(discipline):
+    tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
+    disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+
+    for d in disciplinelist:
+        if d[1].Name == discipline:
+            print('Discpiline to render found')
+            if d[1].type == 'Single':
+                #prepare/get table params...
+                num_players = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournament.ID).count()
+                print('There are %d players', num_players)
+
+                #get table data from DB...
+                results = session.query(Results, Score, TournamentsPlayersMap, Users).join(Score, (Score.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID).order_by(desc(Score.Score))
+
+#                session.query(Users).join(TournamentsPlayersMap, (Users.ID == TournamentsPlayersMap.ID_users)).filter(r[0].ID_players == TournamentsPlayersMap.ID).count()
+
+                for r in results:
+                    print(r)
+
+                return render_template('result_discipline_single.html', current_user=current_user, discipline=d, num_players=num_players, results=results)
+            elif d[1].type == 'OneVsOne':
+                return render_template('result_discipline_one_vs_one.html', current_user=current_user, discipline=d)
+
+    return "Record not found", 400
+
 
 @app.route('/time_schedule')
 @login_required

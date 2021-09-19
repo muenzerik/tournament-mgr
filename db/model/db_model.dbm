@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2" last-position="0,0" last-zoom="1.35" max-obj-count="9"
+<dbmodel pgmodeler-ver="0.9.2" last-position="0,198" last-zoom="1.35" max-obj-count="9"
 	 default-schema="public" default-owner="postgres">
 <database name="maennerfestspiele" is-template="false" allow-conns="true" prepend-at-bod="true">
 	<prepended-sql><![CDATA[CREATE EXTENSION IF NOT EXISTS "uuid-ossp";]]></prepended-sql>
@@ -86,19 +86,19 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="status" not-null="true">
 		<type name="public.player_status" length="0"/>
 	</column>
+	<column name="ID_users">
+		<type name="uuid" length="0"/>
+	</column>
 	<constraint name="players_pk" type="pk-constr" table="public.players">
 		<columns names="ID" ref-type="src-columns"/>
 	</constraint>
 
 	<customidxs object-type="column">
 		<object name="ID_tournament" index="2"/>
-		<object name="ID_users" index="3"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
-		<object name="players_uq" index="1"/>
-		<object name="tournament_fk" index="2"/>
-		<object name="users_fk" index="3"/>
+		<object name="tournament_fk" index="1"/>
 	</customidxs>
 </table>
 
@@ -135,7 +135,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.players"
 	 src-required="false" dst-required="false"/>
 
-<table name="result" layer="0" collapse-mode="2" max-obj-count="8">
+<table name="result" layer="0" collapse-mode="2" max-obj-count="7">
 	<schema name="public"/>
 	<role name="postgres"/>
 	<position x="660" y="1020"/>
@@ -148,24 +148,22 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="DateChanged" not-null="true" default-value="now()">
 		<type name="timestamp with time zone" length="0" with-timezone="true"/>
 	</column>
+	<column name="ID_players">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="ID_tournament">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="ID_discipline">
+		<type name="uuid" length="0"/>
+	</column>
 	<constraint name="result_pk" type="pk-constr" table="public.result">
 		<columns names="ID" ref-type="src-columns"/>
 	</constraint>
-
-	<customidxs object-type="column">
-		<object name="ID_discipline" index="3"/>
-		<object name="ID_players" index="5"/>
-		<object name="ID_tournament" index="4"/>
-	</customidxs>
-
-	<customidxs object-type="constraint">
-		<object name="discipline_fk" index="1"/>
-		<object name="players_fk" index="5"/>
-		<object name="result_uq" index="2"/>
-		<object name="result_uq1" index="4"/>
-		<object name="result_uq2" index="6"/>
-		<object name="tournament_fk" index="3"/>
-	</customidxs>
+	<constraint name="entry_unique" type="uq-constr" table="public.result">
+		<columns names="ID_players,ID_tournament,ID_discipline" ref-type="src-columns"/>
+		<comment><![CDATA[the combination of plyers, tournament and discipline must be unique]]></comment>
+	</constraint>
 </table>
 
 <table name="match_result" layer="0" collapse-mode="2" max-obj-count="6">
@@ -216,24 +214,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</customidxs>
 </table>
 
-<relationship name="Result_has_one_Discipline" type="rel11" layer="0"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#28d22b"
-	 src-table="public.discipline"
-	 dst-table="public.result"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="Result_has_one_Tournament" type="rel11" layer="0"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#8ae56d"
-	 src-table="public.tournament"
-	 dst-table="public.result"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="MatchResult_has_one_Result" type="rel11" layer="0"
 	 src-col-pattern="{sc}_{st}"
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
@@ -255,15 +235,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<position x="-2.84014" y="8.71434"/>
 	</label>
 </relationship>
-
-<relationship name="Result_has_one_Players" type="rel11" layer="0"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#bc2221"
-	 src-table="public.players"
-	 dst-table="public.result"
-	 src-required="false" dst-required="false"/>
 
 <relationship name="MatchScore_has_one_Result" type="rel11" layer="0"
 	 src-col-pattern="{sc}_{st}"
@@ -308,15 +279,6 @@ END;]]></definition>
 		<function signature="public.sync_lastmod()"/>
 </trigger>
 
-<relationship name="Players_has_one_Users" type="rel11" layer="0"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#a8e0a5"
-	 src-table="public.users"
-	 dst-table="public.players"
-	 src-required="true" dst-required="false"/>
-
 <table name="tournament_discipline_map" layer="0" collapse-mode="2" max-obj-count="4">
 	<schema name="public"/>
 	<role name="postgres"/>
@@ -338,6 +300,35 @@ END;]]></definition>
 	</constraint>
 </table>
 
+<constraint name="player_unique" type="uq-constr" table="public.players">
+	<columns names="ID_tournament,ID_users" ref-type="src-columns"/>
+		<comment><![CDATA[the combination tournament key and users key must be unique]]></comment>
+</constraint>
+
+<constraint name="users_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.users" table="public.players">
+	<columns names="ID_users" ref-type="src-columns"/>
+	<columns names="ID" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="players_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.players" table="public.result">
+	<columns names="ID_players" ref-type="src-columns"/>
+	<columns names="ID" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="tournament_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.tournament" table="public.result">
+	<columns names="ID_tournament" ref-type="src-columns"/>
+	<columns names="ID" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="discipline_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.discipline" table="public.result">
+	<columns names="ID_discipline" ref-type="src-columns"/>
+	<columns names="ID" ref-type="dst-columns"/>
+</constraint>
+
 <constraint name="tournament_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.tournament" table="public.tournament_discipline_map">
 	<columns names="ID_tournament" ref-type="src-columns"/>
@@ -358,6 +349,26 @@ END;]]></definition>
 <relationship name="rel_tournament_discipline_map_discipline" type="relfk" layer="0"
 	 src-table="public.tournament_discipline_map"
 	 dst-table="public.discipline" reference-fk="discipline_fk"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_result_players" type="relfk" layer="0"
+	 src-table="public.result"
+	 dst-table="public.players" reference-fk="players_fk"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_result_tournament" type="relfk" layer="0"
+	 src-table="public.result"
+	 dst-table="public.tournament" reference-fk="tournament_fk"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_result_discipline" type="relfk" layer="0"
+	 src-table="public.result"
+	 dst-table="public.discipline" reference-fk="discipline_fk"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_players_users" type="relfk" layer="0"
+	 src-table="public.players"
+	 dst-table="public.users" reference-fk="users_fk"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>

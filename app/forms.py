@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, SelectField, DecimalField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired, Required
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from app.models import Users, Tournaments, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
@@ -94,3 +94,7 @@ class AdminTournamentEditForm(FlaskForm):
     save = SubmitField('Save')
 
     #TODO: Validate unique
+
+class SingleDisciplineForm(FlaskForm):
+    score = DecimalField('Punkte', validators=[DataRequired()])
+    submit = SubmitField('Ergebnis Senden')

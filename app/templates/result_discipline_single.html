@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}{{ discipline }}{% endblock %}
+
+{% block main %}
+
+<h2>Disziplin: {{ discipline[1].Name }}</h2>
+
+<p>TBD</p>
+
+{% if results.count() > 0 %}
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Punkte</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ r[3].UserName }}</td>
+          <td>{{ r[1].Score }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% endblock %}

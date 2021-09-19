@@ -66,7 +66,7 @@ CREATE TABLE public.players (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	status public.player_status NOT NULL,
 	"ID_tournament" uuid,
-	"ID_users" uuid NOT NULL,
+	"ID_users" uuid,
 	CONSTRAINT players_pk PRIMARY KEY ("ID")
 
 );
@@ -108,12 +108,15 @@ CREATE TABLE public.result (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"DateCreated" timestamp with time zone NOT NULL DEFAULT now(),
 	"DateChanged" timestamp with time zone NOT NULL DEFAULT now(),
-	"ID_discipline" uuid,
-	"ID_tournament" uuid,
 	"ID_players" uuid,
-	CONSTRAINT result_pk PRIMARY KEY ("ID")
+	"ID_tournament" uuid,
+	"ID_discipline" uuid,
+	CONSTRAINT result_pk PRIMARY KEY ("ID"),
+	CONSTRAINT entry_unique UNIQUE ("ID_players","ID_tournament","ID_discipline")
 
 );
+-- ddl-end --
+COMMENT ON CONSTRAINT entry_unique ON public.result  IS E'the combination of plyers, tournament and discipline must be unique';
 -- ddl-end --
 -- ALTER TABLE public.result OWNER TO postgres;
 -- ddl-end --
@@ -144,30 +147,6 @@ CREATE TABLE public.match_score (
 -- ALTER TABLE public.match_score OWNER TO postgres;
 -- ddl-end --
 
--- object: discipline_fk | type: CONSTRAINT --
--- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS discipline_fk CASCADE;
-ALTER TABLE public.result ADD CONSTRAINT discipline_fk FOREIGN KEY ("ID_discipline")
-REFERENCES public.discipline ("ID") MATCH FULL
-ON DELETE SET NULL ON UPDATE CASCADE;
--- ddl-end --
-
--- object: result_uq | type: CONSTRAINT --
--- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS result_uq CASCADE;
-ALTER TABLE public.result ADD CONSTRAINT result_uq UNIQUE ("ID_discipline");
--- ddl-end --
-
--- object: tournament_fk | type: CONSTRAINT --
--- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
-ALTER TABLE public.result ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
-REFERENCES public.tournament ("ID") MATCH FULL
-ON DELETE SET NULL ON UPDATE CASCADE;
--- ddl-end --
-
--- object: result_uq1 | type: CONSTRAINT --
--- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS result_uq1 CASCADE;
-ALTER TABLE public.result ADD CONSTRAINT result_uq1 UNIQUE ("ID_tournament");
--- ddl-end --
-
 -- object: result_fk | type: CONSTRAINT --
 -- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS result_fk CASCADE;
 ALTER TABLE public.match_result ADD CONSTRAINT result_fk FOREIGN KEY ("ID_result")
@@ -190,18 +169,6 @@ ON DELETE SET NULL ON UPDATE CASCADE;
 -- object: match_result_uq1 | type: CONSTRAINT --
 -- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS match_result_uq1 CASCADE;
 ALTER TABLE public.match_result ADD CONSTRAINT match_result_uq1 UNIQUE ("ID_players");
--- ddl-end --
-
--- object: players_fk | type: CONSTRAINT --
--- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS players_fk CASCADE;
-ALTER TABLE public.result ADD CONSTRAINT players_fk FOREIGN KEY ("ID_players")
-REFERENCES public.players ("ID") MATCH FULL
-ON DELETE SET NULL ON UPDATE CASCADE;
--- ddl-end --
-
--- object: result_uq2 | type: CONSTRAINT --
--- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS result_uq2 CASCADE;
-ALTER TABLE public.result ADD CONSTRAINT result_uq2 UNIQUE ("ID_players");
 -- ddl-end --
 
 -- object: result_fk | type: CONSTRAINT --
@@ -254,29 +221,54 @@ CREATE TRIGGER sync_lastmod
 	EXECUTE PROCEDURE public.sync_lastmod();
 -- ddl-end --
 
--- object: users_fk | type: CONSTRAINT --
--- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS users_fk CASCADE;
-ALTER TABLE public.players ADD CONSTRAINT users_fk FOREIGN KEY ("ID_users")
-REFERENCES public.users ("ID") MATCH FULL
-ON DELETE RESTRICT ON UPDATE CASCADE;
--- ddl-end --
-
--- object: players_uq | type: CONSTRAINT --
--- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS players_uq CASCADE;
-ALTER TABLE public.players ADD CONSTRAINT players_uq UNIQUE ("ID_users");
--- ddl-end --
-
 -- object: public.tournament_discipline_map | type: TABLE --
 -- DROP TABLE IF EXISTS public.tournament_discipline_map CASCADE;
 CREATE TABLE public.tournament_discipline_map (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"ID_tournament" uuid NOT NULL,
 	"ID_discipline" uuid NOT NULL,
-	CONSTRAINT tournament_discipline_map_pk PRIMARY KEY ("ID")
+	CONSTRAINT tournament_discipline_map_pk PRIMARY KEY ("ID"),
+	CONSTRAINT contraint_tournament_unique UNIQUE ("ID_tournament","ID_discipline")
 
 );
 -- ddl-end --
 -- ALTER TABLE public.tournament_discipline_map OWNER TO postgres;
+-- ddl-end --
+
+-- object: player_unique | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS player_unique CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT player_unique UNIQUE ("ID_tournament","ID_users");
+-- ddl-end --
+COMMENT ON CONSTRAINT player_unique ON public.players  IS E'the combination tournament key and users key must be unique';
+-- ddl-end --
+
+
+-- object: users_fk | type: CONSTRAINT --
+-- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS users_fk CASCADE;
+ALTER TABLE public.players ADD CONSTRAINT users_fk FOREIGN KEY ("ID_users")
+REFERENCES public.users ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- ddl-end --
+
+-- object: players_fk | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS players_fk CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT players_fk FOREIGN KEY ("ID_players")
+REFERENCES public.players ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- ddl-end --
+
+-- object: tournament_fk | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
+REFERENCES public.tournament ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- ddl-end --
+
+-- object: discipline_fk | type: CONSTRAINT --
+-- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS discipline_fk CASCADE;
+ALTER TABLE public.result ADD CONSTRAINT discipline_fk FOREIGN KEY ("ID_discipline")
+REFERENCES public.discipline ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: tournament_fk | type: CONSTRAINT --
