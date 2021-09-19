@@ -1,8 +1,14 @@
 from flask import render_template, redirect, flash, url_for, request
+<<<<<<< HEAD
 from sqlalchemy.orm.util import join
 from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm
 from flask_login import current_user, login_user, login_required, logout_user
 from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
+=======
+from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm
+from flask_login import current_user, login_user, login_required, logout_user
+from app.models import Tournaments, Users, Disciplines
+>>>>>>> master
 
 
 from app import app, engine
@@ -78,6 +84,29 @@ def admin_menu():
         flash('Tornament Created!')
 
     tournamentlist = session.query(Tournaments.Name, Tournaments.Season)
+
+    disciplineform = AdminDisciplineForm()
+    if disciplineform.validate_on_submit():
+        #TODO: check whether it already exists
+
+        discipline = Disciplines(Name=disciplineform.name.data, type=dict(disciplineform.type.choices).get(disciplineform.type.data))
+
+        if disciplineform.action.data == 'create':
+            session.add(discipline)
+            session.commit()
+            flash('discipline created!')
+        elif disciplineform.action.data == 'modify':
+            flash('discipline modified!')
+        elif disciplineform.action.data == 'delete':
+            stmt = delete(Disciplines).where(Disciplines.Name == disciplineform.name.data and Disciplines.type == dict(disciplineform.type.choices).get(disciplineform.type.data) ).execution_options(synchronize_session="fetch")
+            session.execute(stmt)
+
+#            session.delete(discipline)
+            session.commit()
+            flash('discipline deleted!')
+
+
+    disciplinelist = session.query(Disciplines.Name, Disciplines.type)
 
     for t in tournamentlist:
         print(t)
@@ -167,7 +196,11 @@ def admin_menu():
     elif request.method == 'GET':
         # do something
         pass
+<<<<<<< HEAD
     return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, tournamenteditform=tournamenteditform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist, tournamentselectlist=tournamentselectlist, playerselectlist=playerselectlist)
+=======
+    return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist)
+>>>>>>> master
 
 @app.route('/news')
 def news():
