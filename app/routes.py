@@ -1,18 +1,12 @@
 from flask import render_template, redirect, flash, url_for, request
-<<<<<<< HEAD
 from sqlalchemy.orm.util import join
 from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm
 from flask_login import current_user, login_user, login_required, logout_user
 from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
-=======
-from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm
-from flask_login import current_user, login_user, login_required, logout_user
-from app.models import Tournaments, Users, Disciplines
->>>>>>> master
 
 
 from app import app, engine
-from sqlalchemy import delete
+from sqlalchemy import delete, desc,  asc
 from sqlalchemy.orm import Session
 session = Session(engine)
 
@@ -58,7 +52,25 @@ def register():
 @app.route('/disciplines')
 @login_required
 def disciplines():
-    return render_template('disciplines.html', current_user=current_user)
+    tournament = session.query(Tournaments).order_by(asc(Tournaments.Season)).first()
+    disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+    return render_template('disciplines.html', current_user=current_user, disciplinelist=disciplinelist)
+
+@app.route('/disciplines/<discipline>')
+@login_required
+def discipline(discipline):
+    tournament = session.query(Tournaments).order_by(asc(Tournaments.Season)).first()
+    disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+
+    for d in disciplinelist:
+        if d[1].Name == discipline:
+            print('Discpiline to render found')
+            if d[1].type == 'Single':
+                return render_template('discipline_single.html', current_user=current_user, discipline=d)
+            elif d[1].type == 'OneVsOne':
+                return render_template('discipline_one_vs_one.html', current_user=current_user, discipline=d)
+
+    return "Record not found", 400
 
 @app.route('/time_schedule')
 @login_required
@@ -84,29 +96,6 @@ def admin_menu():
         flash('Tornament Created!')
 
     tournamentlist = session.query(Tournaments.Name, Tournaments.Season)
-
-    disciplineform = AdminDisciplineForm()
-    if disciplineform.validate_on_submit():
-        #TODO: check whether it already exists
-
-        discipline = Disciplines(Name=disciplineform.name.data, type=dict(disciplineform.type.choices).get(disciplineform.type.data))
-
-        if disciplineform.action.data == 'create':
-            session.add(discipline)
-            session.commit()
-            flash('discipline created!')
-        elif disciplineform.action.data == 'modify':
-            flash('discipline modified!')
-        elif disciplineform.action.data == 'delete':
-            stmt = delete(Disciplines).where(Disciplines.Name == disciplineform.name.data and Disciplines.type == dict(disciplineform.type.choices).get(disciplineform.type.data) ).execution_options(synchronize_session="fetch")
-            session.execute(stmt)
-
-#            session.delete(discipline)
-            session.commit()
-            flash('discipline deleted!')
-
-
-    disciplinelist = session.query(Disciplines.Name, Disciplines.type)
 
     for t in tournamentlist:
         print(t)
@@ -152,7 +141,6 @@ def admin_menu():
                 session.add(mapping)
             else:
                 session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournamenteditform.data['tournamentselect'].ID, TournamentsPlayersMap.ID_users == tournamenteditform.data['playerselect'].ID).update({'status': ('active')})
-
             session.commit()
             flash('player added to tournament!')
         elif tournamenteditform.removeplayer.data:
@@ -168,7 +156,6 @@ def admin_menu():
 
     tournamentselectlist = None
     playerselectlist = None
-#    tournamentselectlist = session.query(Disciplines.Name, Disciplines.type)
     if tournamenteditform.tournamentselect.data is not None:
         #quey all desciplines which are linked to the given tournament
         tournamentselectlist = session.query(Disciplines).join(TournamentsDisciplinesMap, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID))
@@ -196,11 +183,7 @@ def admin_menu():
     elif request.method == 'GET':
         # do something
         pass
-<<<<<<< HEAD
     return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, tournamenteditform=tournamenteditform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist, tournamentselectlist=tournamentselectlist, playerselectlist=playerselectlist)
-=======
-    return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist)
->>>>>>> master
 
 @app.route('/news')
 def news():
