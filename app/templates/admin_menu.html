@@ -6,7 +6,7 @@
 
     <h1>Admin Menu</h1>
 
-    <h2>Tournaments</h2>
+    <h2>Create/Edit/Delete Tournaments</h2>
 
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
@@ -46,6 +46,8 @@
 
       <hr style="width:100%;text-align:left;margin-left:0">
 
+      <h2>Create/Edit/Delete Disciplines</h2>
+
       <form action="" method="post" novalidate>
         {{ disciplineform.hidden_tag() }}
         <p>
@@ -69,7 +71,7 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p>{{ disciplineform.create() }}</p>
+        <p>{{ disciplineform.submit() }}</p>
     </form>
 
     <table id="data" class="table table-striped">
@@ -87,9 +89,9 @@
             </tr>
           {% endfor %}
         </tbody>
-      </table>
+    </table>
 
-      <hr style="width:100%;text-align:left;margin-left:0">
+    <hr style="width:100%;text-align:left;margin-left:0">
 <!--
 <form method ="post" action="">
 
@@ -117,7 +119,92 @@
 
 
 
-    <h2>Tournament xxx</h2>
+    <h2>Set up a given Tournament</h2>
+
+    <form action="" method="post" novalidate>
+        {{ tournamenteditform.hidden_tag() }}
+        <p>
+            {{ tournamenteditform.tournamentselect.label }}<br>
+            {{ tournamenteditform.tournamentselect(**{"onchange":"this.form.submit()"}) }}<br>
+            {% for error in tournamenteditform.tournamentselect.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        {% if tournamenteditform.data['tournamentselect'].Name|length %}
+
+        <p>
+            {{ tournamenteditform.disciplineselect.label }}<br>
+            {{ tournamenteditform.disciplineselect(**{"onchange":"this.form.submit()"}) }}<br>
+            {% for error in tournamenteditform.disciplineselect.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        {% if tournamenteditform.data['disciplineselect'].Name|length %}
+        <p>{{ tournamenteditform.adddiscipline() }}</p>
+        <p>{{ tournamenteditform.removediscipline() }}</p>
+        {% endif %}
+
+        <p>
+            {{ tournamenteditform.playerselect.label }}<br>
+            {{ tournamenteditform.playerselect(**{"onchange":"this.form.submit()"}) }}<br>
+            {% for error in tournamenteditform.playerselect.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        {% if tournamenteditform.data['playerselect'].UserName|length %}
+        <p>{{ tournamenteditform.addplayer() }}</p>
+        <p>{{ tournamenteditform.removeplayer() }}</p>
+        {% endif %}
+
+        {% endif %}
+
+        <p>{{ tournamenteditform.save() }}</p>
+    </form>
+
+    {% if tournamentselectlist %}
+    <table id="data" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Discipline Name</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for discipline in tournamentselectlist %}
+            <tr>
+              <td>{{ discipline.Name }}</td>
+              <td>{{ discipline.type }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if playerselectlist %}
+    <table id="data" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Player Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for player in playerselectlist %}
+            <tr>
+              <td>{{ player.UserName }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    
+
+    <hr style="width:100%;text-align:left;margin-left:0">
+
+    <h2>TBD</h2>
 
     <p>TBD</p>
 

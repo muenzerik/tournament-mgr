@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, SelectField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired
-from app.models import Users, Tournaments
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired, Required
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
+from app.models import Users, Tournaments, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
 
 from app import app, engine
 from sqlalchemy.orm import Session
@@ -50,9 +51,46 @@ class CreateTournamentForm(FlaskForm):
     #TODO: Validate no entry with same name AND season
 
 class AdminDisciplineForm(FlaskForm):
-    name = StringField('Tournament Name', validators=[DataRequired()])
+    name = StringField('Discipline Name', validators=[DataRequired()])
     type = SelectField(u'Type', choices=[('single', 'Single'), ('onevsone', 'OneVsOne')], validators=[DataRequired()])
     action = SelectField(u'Action', choices=[('create', 'Create'), ('modify', 'Modify'), ('delete', 'Delete')], validators=[DataRequired()])
-    create = SubmitField('Do Action')
+    submit = SubmitField('Do Action')
+
+    #TODO: Validate unique
+
+class AdminTournamentEditForm(FlaskForm):
+    
+    def tournament_choices():      
+        return session.query(Tournaments).order_by(Tournaments.Name, Tournaments.Season).all()
+
+    tournamentselect = QuerySelectField(u'Select Tournament...',      
+                               validators=[DataRequired()],
+                               query_factory=tournament_choices,
+                               get_label='Name',
+                               allow_blank=True)
+
+    def discipline_choices():      
+        return session.query(Disciplines).order_by(Disciplines.Name, Disciplines.type).all()
+
+    disciplineselect = QuerySelectField(u'Select Discipline...',      
+                               validators=[DataRequired()],
+                               query_factory=discipline_choices,
+                               get_label='Name',
+                               allow_blank=True)
+    adddiscipline = SubmitField('Add')
+    removediscipline = SubmitField('Remove')
+
+    def player_choices():      
+        return session.query(Users).order_by(Users.UserName).all()
+
+    playerselect = QuerySelectField(u'Select Player...',      
+                               validators=[DataRequired()],
+                               query_factory=player_choices,
+                               get_label='UserName',
+                               allow_blank=True)
+    addplayer = SubmitField('Add')
+    removeplayer = SubmitField('Deactivate')
+
+    save = SubmitField('Save')
 
     #TODO: Validate unique

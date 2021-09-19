@@ -88,19 +88,11 @@ CREATE TABLE public.discipline (
 	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
 	"Name" varchar NOT NULL,
 	type public.discipline_t NOT NULL,
-	"ID_tournament" uuid,
 	CONSTRAINT discipline_pk PRIMARY KEY ("ID")
 
 );
 -- ddl-end --
 -- ALTER TABLE public.discipline OWNER TO postgres;
--- ddl-end --
-
--- object: tournament_fk | type: CONSTRAINT --
--- ALTER TABLE public.discipline DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
-ALTER TABLE public.discipline ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
-REFERENCES public.tournament ("ID") MATCH FULL
-ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
 
 -- object: tournament_fk | type: CONSTRAINT --
@@ -272,6 +264,33 @@ ON DELETE RESTRICT ON UPDATE CASCADE;
 -- object: players_uq | type: CONSTRAINT --
 -- ALTER TABLE public.players DROP CONSTRAINT IF EXISTS players_uq CASCADE;
 ALTER TABLE public.players ADD CONSTRAINT players_uq UNIQUE ("ID_users");
+-- ddl-end --
+
+-- object: public.tournament_discipline_map | type: TABLE --
+-- DROP TABLE IF EXISTS public.tournament_discipline_map CASCADE;
+CREATE TABLE public.tournament_discipline_map (
+	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
+	"ID_tournament" uuid NOT NULL,
+	"ID_discipline" uuid NOT NULL,
+	CONSTRAINT tournament_discipline_map_pk PRIMARY KEY ("ID")
+
+);
+-- ddl-end --
+-- ALTER TABLE public.tournament_discipline_map OWNER TO postgres;
+-- ddl-end --
+
+-- object: tournament_fk | type: CONSTRAINT --
+-- ALTER TABLE public.tournament_discipline_map DROP CONSTRAINT IF EXISTS tournament_fk CASCADE;
+ALTER TABLE public.tournament_discipline_map ADD CONSTRAINT tournament_fk FOREIGN KEY ("ID_tournament")
+REFERENCES public.tournament ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- ddl-end --
+
+-- object: discipline_fk | type: CONSTRAINT --
+-- ALTER TABLE public.tournament_discipline_map DROP CONSTRAINT IF EXISTS discipline_fk CASCADE;
+ALTER TABLE public.tournament_discipline_map ADD CONSTRAINT discipline_fk FOREIGN KEY ("ID_discipline")
+REFERENCES public.discipline ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 
