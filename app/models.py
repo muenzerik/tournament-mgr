@@ -40,7 +40,7 @@ def load_user(id):
     return session.query(Users).get(id)
 
 class Tournaments(Base):
-    __table__ = Table('tournament', metadata, autoload=True)   
+    __table__ = Table('tournament', metadata, autoload=True)
 
     def get_id(self):
         return self.ID
@@ -62,3 +62,9 @@ class Disciplines(Base):
 
     def get_type(self):
         return self.type
+
+class TournamentsDisciplinesMap(Base):
+    __table__ = Table('tournament_discipline_map', metadata, autoload=True)   
+
+class TournamentsPlayersMap(Base):
+    __table__ = Table('players', metadata, autoload=True)

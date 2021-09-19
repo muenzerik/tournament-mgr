@@ -1,7 +1,14 @@
 from flask import render_template, redirect, flash, url_for, request
+<<<<<<< HEAD
+from sqlalchemy.orm.util import join
+from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm
+from flask_login import current_user, login_user, login_required, logout_user
+from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
+=======
 from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm
 from flask_login import current_user, login_user, login_required, logout_user
 from app.models import Tournaments, Users, Disciplines
+>>>>>>> master
 
 
 from app import app, engine
@@ -104,6 +111,78 @@ def admin_menu():
     for t in tournamentlist:
         print(t)
 
+    disciplineform = AdminDisciplineForm()
+    if disciplineform.validate_on_submit():
+        #TODO: check whether it already exists
+
+        discipline = Disciplines(Name=disciplineform.name.data, type=dict(disciplineform.type.choices).get(disciplineform.type.data))
+
+        if disciplineform.action.data == 'create':
+            session.add(discipline)
+            session.commit()
+            flash('discipline created!')
+        elif disciplineform.action.data == 'modify':
+            flash('discipline modified!')
+        elif disciplineform.action.data == 'delete':
+            stmt = delete(Disciplines).where(Disciplines.Name == disciplineform.name.data and Disciplines.type == dict(disciplineform.type.choices).get(disciplineform.type.data) ).execution_options(synchronize_session="fetch")
+            session.execute(stmt)
+            session.commit()
+            flash('discipline deleted!')
+
+    disciplinelist = session.query(Disciplines.Name, Disciplines.type)
+
+    tournamenteditform = AdminTournamentEditForm()
+    
+    if tournamenteditform.validate_on_submit():
+        if tournamenteditform.adddiscipline.data:
+            mapping = TournamentsDisciplinesMap(ID_tournament=tournamenteditform.data['tournamentselect'].ID, ID_discipline=tournamenteditform.data['disciplineselect'].ID)
+            session.add(mapping)
+            session.commit()
+            flash('discipline added to tournament!')
+        elif tournamenteditform.removediscipline.data:
+#            stmt = delete(TournamentsDisciplinesMap).where(TournamentsDisciplinesMap.ID_tournament == tournamenteditform.data['tournamentselect'].ID, TournamentsDisciplinesMap.ID_discipline == tournamenteditform.data['disciplineselect'].ID).execution_options(synchronize_session="fetch")
+#            session.execute(stmt)
+            session.query(TournamentsDisciplinesMap).filter(TournamentsDisciplinesMap.ID_tournament == tournamenteditform.data['tournamentselect'].ID, TournamentsDisciplinesMap.ID_discipline == tournamenteditform.data['disciplineselect'].ID).delete()
+            session.commit()
+            flash('discipline removed from tournament!')
+
+        if tournamenteditform.addplayer.data:
+            if session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournamenteditform.data['tournamentselect'].ID, TournamentsPlayersMap.ID_users == tournamenteditform.data['playerselect'].ID).count() < 1:
+                mapping = TournamentsPlayersMap(ID_tournament=tournamenteditform.data['tournamentselect'].ID, ID_users=tournamenteditform.data['playerselect'].ID, status='active')
+                session.add(mapping)
+            else:
+                session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournamenteditform.data['tournamentselect'].ID, TournamentsPlayersMap.ID_users == tournamenteditform.data['playerselect'].ID).update({'status': ('active')})
+
+            session.commit()
+            flash('player added to tournament!')
+        elif tournamenteditform.removeplayer.data:
+            session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournamenteditform.data['tournamentselect'].ID, TournamentsPlayersMap.ID_users == tournamenteditform.data['playerselect'].ID).update({'status': ('inactive')})
+            session.commit()
+            flash('player deactivated from tournament!')
+        elif tournamenteditform.save.data:
+            print('save pressed')
+        else:
+            print('nothing pressed')
+
+    print(tournamenteditform.errors)
+
+    tournamentselectlist = None
+    playerselectlist = None
+#    tournamentselectlist = session.query(Disciplines.Name, Disciplines.type)
+    if tournamenteditform.tournamentselect.data is not None:
+        #quey all desciplines which are linked to the given tournament
+        tournamentselectlist = session.query(Disciplines).join(TournamentsDisciplinesMap, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID))
+        playerselectlist = session.query(Users).join(TournamentsPlayersMap, (TournamentsPlayersMap.ID_users == Users.ID)).filter(TournamentsPlayersMap.status == 'active')
+        for t in tournamentselectlist:
+            print(t)
+
+        for p in playerselectlist:
+            print(p)
+
+        print('ttt------------------')
+
+    
+
     if request.method == "POST":
         if request.form.get('create'):
             
@@ -117,7 +196,11 @@ def admin_menu():
     elif request.method == 'GET':
         # do something
         pass
+<<<<<<< HEAD
+    return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, tournamenteditform=tournamenteditform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist, tournamentselectlist=tournamentselectlist, playerselectlist=playerselectlist)
+=======
     return render_template('admin_menu.html', title='Admin', form=form, disciplineform=disciplineform, current_user=current_user, tournamentlist=tournamentlist, disciplinelist=disciplinelist)
+>>>>>>> master
 
 @app.route('/news')
 def news():
