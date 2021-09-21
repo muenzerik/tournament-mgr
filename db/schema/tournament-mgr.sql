@@ -121,17 +121,12 @@ COMMENT ON CONSTRAINT entry_unique ON public.result  IS E'the combination of ply
 -- ALTER TABLE public.result OWNER TO postgres;
 -- ddl-end --
 
--- object: public.match_result | type: TABLE --
--- DROP TABLE IF EXISTS public.match_result CASCADE;
-CREATE TABLE public.match_result (
-	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
-	"ID_result" uuid,
-	"ID_players" uuid,
-	CONSTRAINT match_result_pk PRIMARY KEY ("ID")
-
-);
+-- object: public.one_vs_one_match_result_t | type: TYPE --
+-- DROP TYPE IF EXISTS public.one_vs_one_match_result_t CASCADE;
+CREATE TYPE public.one_vs_one_match_result_t AS
+ ENUM ('none','win','lose');
 -- ddl-end --
--- ALTER TABLE public.match_result OWNER TO postgres;
+-- ALTER TYPE public.one_vs_one_match_result_t OWNER TO postgres;
 -- ddl-end --
 
 -- object: public.match_score | type: TABLE --
@@ -147,28 +142,18 @@ CREATE TABLE public.match_score (
 -- ALTER TABLE public.match_score OWNER TO postgres;
 -- ddl-end --
 
--- object: result_fk | type: CONSTRAINT --
--- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS result_fk CASCADE;
-ALTER TABLE public.match_result ADD CONSTRAINT result_fk FOREIGN KEY ("ID_result")
-REFERENCES public.result ("ID") MATCH FULL
-ON DELETE SET NULL ON UPDATE CASCADE;
--- ddl-end --
+-- object: public.match_result | type: TABLE --
+-- DROP TABLE IF EXISTS public.match_result CASCADE;
+CREATE TABLE public.match_result (
+	"ID" uuid NOT NULL DEFAULT uuid_generate_v1(),
+	"ID_players" uuid,
+	"ID_result" uuid,
+	match_result public.one_vs_one_match_result_t NOT NULL,
+	CONSTRAINT match_result_pk PRIMARY KEY ("ID")
 
--- object: match_result_uq | type: CONSTRAINT --
--- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS match_result_uq CASCADE;
-ALTER TABLE public.match_result ADD CONSTRAINT match_result_uq UNIQUE ("ID_result");
+);
 -- ddl-end --
-
--- object: players_fk | type: CONSTRAINT --
--- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS players_fk CASCADE;
-ALTER TABLE public.match_result ADD CONSTRAINT players_fk FOREIGN KEY ("ID_players")
-REFERENCES public.players ("ID") MATCH FULL
-ON DELETE SET NULL ON UPDATE CASCADE;
--- ddl-end --
-
--- object: match_result_uq1 | type: CONSTRAINT --
--- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS match_result_uq1 CASCADE;
-ALTER TABLE public.match_result ADD CONSTRAINT match_result_uq1 UNIQUE ("ID_players");
+-- ALTER TABLE public.match_result OWNER TO postgres;
 -- ddl-end --
 
 -- object: result_fk | type: CONSTRAINT --
@@ -268,6 +253,20 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ALTER TABLE public.result DROP CONSTRAINT IF EXISTS discipline_fk CASCADE;
 ALTER TABLE public.result ADD CONSTRAINT discipline_fk FOREIGN KEY ("ID_discipline")
 REFERENCES public.discipline ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- ddl-end --
+
+-- object: players_fk | type: CONSTRAINT --
+-- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS players_fk CASCADE;
+ALTER TABLE public.match_result ADD CONSTRAINT players_fk FOREIGN KEY ("ID_players")
+REFERENCES public.players ("ID") MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- ddl-end --
+
+-- object: result_fk | type: CONSTRAINT --
+-- ALTER TABLE public.match_result DROP CONSTRAINT IF EXISTS result_fk CASCADE;
+ALTER TABLE public.match_result ADD CONSTRAINT result_fk FOREIGN KEY ("ID_result")
+REFERENCES public.result ("ID") MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 

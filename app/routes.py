@@ -1,8 +1,8 @@
 from flask import render_template, redirect, flash, url_for, request
 from sqlalchemy.orm.util import join
-from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm, SingleDisciplineForm
+from app.forms import LoginForm, RegistrationForm, CreateTournamentForm, AdminDisciplineForm, AdminTournamentEditForm, SingleDisciplineForm, OneVsOneDisciplineForm, OneVsOneEntryForm
 from flask_login import current_user, login_user, login_required, logout_user
-from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap, Results, Score
+from app.models import Tournaments, Users, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap, Results, Score, MatchResult
 
 
 from app import app, engine
@@ -68,6 +68,7 @@ def discipline(discipline):
             if d[1].type == 'Single':
                 form = SingleDisciplineForm()
                 if form.validate_on_submit():
+                    #get player info of current user
                     player = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_users == current_user.ID).first()
 
                     if session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == player.ID).count() > 0:
@@ -79,7 +80,7 @@ def discipline(discipline):
 
                         #create the score entry and link it to the result entry in the DB...
                         score = session.query(Score).filter(Score.ID_result == result[0].ID).update({'Score': (form.score.data)})
-                        session.add(score)
+#                        session.add(score)
                         session.commit()
 
                         flash('Score modified!')
@@ -100,8 +101,103 @@ def discipline(discipline):
 
                 return render_template('discipline_single.html', current_user=current_user, discipline=d, form=form)
             elif d[1].type == 'OneVsOne':
-                form = SingleDisciplineForm()
-                return render_template('discipline_one_vs_one.html', current_user=current_user, discipline=d, form=form)
+#                form = OneVsOneDisciplineForm()
+
+                #prepare/get table params...
+                num_players = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournament.ID).count()
+                print('There are %d players', num_players)
+
+                #get table data from DB...
+                #get all active players but current_user...
+                opponents = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Users.ID != current_user.ID, TournamentsPlayersMap.status == 'active')
+
+                forms = []
+                for o in opponents:
+                    labelstring = 'Hast du gegen ' + o.Users.UserName + ' gewonnen?'
+#                    f = OneVsOneEntryForm()
+#                    f.result.label = labelstring
+                    forms.append(OneVsOneEntryForm(prefix=o.Users.UserName))
+                    forms[-1].result.label = labelstring
+
+                for i, f in enumerate(forms):
+                    if f.submit.data and f.validate_on_submit():
+                        print(f.submit.data)
+                        print(f.result.data)
+                        print(opponents[i].Users.UserName)
+
+                        #get player info of current user
+                        player = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_users == current_user.ID).first()
+
+                        #get player info of opponent
+                        opp = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_users == opponents[i].Users.ID).first()
+
+
+                        #
+                        #Step1: create/modify match result of current_user 
+                        #
+
+                        #create tournament result of the given user and discipline DB (if not already exists)
+                        if session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == player.ID).count() == 0:
+                            
+                            result = Results(DateCreated=func.current_timestamp(), DateChanged=func.current_timestamp(), ID_discipline=d[1].ID, ID_tournament=tournament.ID, ID_players=player.ID)
+                            session.add(result)
+                            session.commit()
+                        else:
+                            result = session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == player.ID)
+                            result = result[0]
+
+                        if session.query(MatchResult).filter(MatchResult.ID_result == result.ID, MatchResult.ID_players == opp.ID).count() == 0:
+                            #create the match result entry and link it to the result entry in the DB...
+                            print(result.ID)
+                            matchresult = MatchResult(ID_result=result.ID, ID_players=opp.ID, match_result=f.result.data)
+                            session.add(matchresult)
+                            session.commit()
+                            flash('User Result added!')
+                        else:
+                            #create the score entry and link it to the result entry in the DB...
+                            matchresult = session.query(MatchResult).filter(MatchResult.ID_result == result.ID, MatchResult.ID_players == opp.ID).update({'match_result': (f.result.data)})
+#                            session.add(matchresult)
+                            session.commit()
+                            flash('User Result modified!')
+
+                        #
+                        #Step2: create/modify match result of opponent of current_user
+                        #
+
+                        #create tournament result of the opponent user and discipline DB (if not already exists)
+                        if session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == opp.ID).count() == 0:
+                            
+                            oppresult = Results(DateCreated=func.current_timestamp(), DateChanged=func.current_timestamp(), ID_discipline=d[1].ID, ID_tournament=tournament.ID, ID_players=opp.ID)
+                            session.add(oppresult)
+                            session.commit()
+                        else:
+                            oppresult = session.query(Results).filter(Results.ID_discipline == d[1].ID, Results.ID_tournament == tournament.ID, Results.ID_players == opp.ID)
+                            oppresult = oppresult[0]
+
+                        #ATTENTION: for the opponent, the match_result needs to be inverted from f.result.data
+                        if f.result.data == 'win':
+                            match_result_inverted = 'lose'
+                        elif f.result.data == 'lose':
+                            match_result_inverted = 'win'
+                        else:
+                            match_result_inverted = 'none'
+
+                        if session.query(MatchResult).filter(MatchResult.ID_result == oppresult.ID, MatchResult.ID_players == player.ID).count() == 0:
+                            #create the match result entry and link it to the result entry in the DB...
+                            print(oppresult.ID)
+                            oppmatchresult = MatchResult(ID_result=oppresult.ID, ID_players=player.ID, match_result=match_result_inverted)
+                            session.add(oppmatchresult)
+                            session.commit()
+                            flash('Opponent Result added!')
+                        else:
+                            #create the score entry and link it to the result entry in the DB...
+                            oppmatchresult = session.query(MatchResult).filter(MatchResult.ID_result == oppresult.ID, MatchResult.ID_players == player.ID).update({'match_result': (match_result_inverted)})
+#                            session.add(oppmatchresult)
+                            session.commit()
+                            flash('Opponent Result modified!')
+
+                
+                return render_template('discipline_one_vs_one.html', current_user=current_user, discipline=d, forms=forms, opponents=opponents)
 
     return "Record not found", 400
 
@@ -137,7 +233,56 @@ def result(discipline):
 
                 return render_template('result_discipline_single.html', current_user=current_user, discipline=d, num_players=num_players, results=results)
             elif d[1].type == 'OneVsOne':
-                return render_template('result_discipline_one_vs_one.html', current_user=current_user, discipline=d)
+                #get table data from DB...
+                num_players = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournament.ID, TournamentsPlayersMap.status == 'active').count()
+                print('There are %d players', num_players)
+                players = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(TournamentsPlayersMap.ID_tournament == tournament.ID, TournamentsPlayersMap.status == 'active').order_by(asc(Users.UserName))
+
+                matrix = []
+                totals = []
+                for row, p in enumerate(players):
+#                    opponents = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Users.ID != p[2].ID, TournamentsPlayersMap.status == 'active')
+                    column = []
+                    total = 0
+                    for col, o in enumerate(players):
+                        if o == p:
+                            column.append('n/a')
+                        else:
+                            result = session.query(Results, MatchResult).join(MatchResult, (Results.ID == MatchResult.ID_result)).filter(Results.ID_players == p[0].ID, MatchResult.ID_players == o[0].ID).first()
+                            if result is not None:
+                                if result[1].match_result == 'win':
+                                    column.append('1')
+                                    total = total + 1
+                                elif result[1].match_result == 'lose':
+                                    column.append('0')
+                                else:
+                                    column.append('')
+                            else: 
+                                column.append('')
+                    matrix.append(column)
+                    totals.append(total)
+
+                disciplineresults = list(zip(players, totals))
+                print(disciplineresults)
+
+                disciplineresults = sorted(disciplineresults, key=lambda disciplineresults:disciplineresults[1], reverse=True)
+
+
+
+
+                #get table data from DB...
+                #get all active players but current_user...
+                opponents = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Users.ID != current_user.ID, TournamentsPlayersMap.status == 'active')
+
+                #get table data from DB...
+                results = session.query(Results, MatchResult, TournamentsPlayersMap, Users).join(MatchResult, (MatchResult.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID).order_by(asc(Users.UserName))
+
+#                session.query(Users).join(TournamentsPlayersMap, (Users.ID == TournamentsPlayersMap.ID_users)).filter(r[0].ID_players == TournamentsPlayersMap.ID).count()
+
+                for r in results:
+                    print(r)
+
+                return render_template('result_discipline_one_vs_one.html', current_user=current_user, discipline=d, players=players, matrix=matrix, disciplineresults=disciplineresults)
 
     return "Record not found", 400
 

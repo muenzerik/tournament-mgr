@@ -74,3 +74,6 @@ class Results(Base):
 
 class Score(Base):
     __table__ = Table('match_score', metadata, autoload=True) 
+
+class MatchResult(Base):
+    __table__ = Table('match_result', metadata, autoload=True) 

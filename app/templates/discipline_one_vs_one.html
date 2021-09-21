@@ -8,6 +8,33 @@
 
 <p>TBD</p>
 
-
+{% if opponents.count() > 0 %}
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">Gegner</th>
+        <th scope="col">Ergebnis</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for form in forms %}
+        <tr>
+          <td>{{ opponents[loop.index0][1].UserName }}</td>
+          <td>
+            <form action="" method="post" novalidate>
+                {{ form.hidden_tag() }}
+                {{ form.result.label }}<br>
+                {{ form.result }}<br>
+                {% for error in form.result.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+                {{ form.submit() }}<br>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
 
 {% endblock %}

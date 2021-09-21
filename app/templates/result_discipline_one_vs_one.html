@@ -8,6 +8,51 @@
 
 <p>TBD</p>
 
+{% if players.count() > 0 %}
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        {% for p in players %}
+        <th>{{ p[1].UserName }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+        {% for p in players %}
+        <tr>
+          <td>{{ p[1].UserName }}</td>
+          {% for cell in matrix[loop.index0] %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
 
+<h2>Ranking in der Disziplin {{ discipline[1].Name }}:</h2>
+
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Siege</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for r in disciplineresults %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ r[0].Users.UserName }}</td>
+          <td>{{ r[1] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
+  <p>Noch keine Resultate verfuegbar</p>
+{% endif %}
 
 {% endblock %}

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, SelectField, DecimalField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, SelectField, DecimalField, FieldList, FormField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired, Required
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from app.models import Users, Tournaments, Disciplines, TournamentsDisciplinesMap, TournamentsPlayersMap
@@ -98,3 +98,10 @@ class AdminTournamentEditForm(FlaskForm):
 class SingleDisciplineForm(FlaskForm):
     score = DecimalField('Punkte', validators=[DataRequired()])
     submit = SubmitField('Ergebnis Senden')
+
+class OneVsOneEntryForm(FlaskForm):
+    result = SelectField(u'Hast du gewonnen?', choices=[('none','noch nicht gespielt'), ('win', 'gewonnen'), ('lose', 'verloren')], validators=[DataRequired()])
+    submit = SubmitField('Ergebnis Senden')
+
+class OneVsOneDisciplineForm(FlaskForm):
+    opponentforms = FieldList(FormField(OneVsOneEntryForm), min_entries=1)
