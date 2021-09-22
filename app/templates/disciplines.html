@@ -6,20 +6,18 @@
 
 <h2>Disziplinen</h2>
 
-<p>TBD</p>
-
 <table id="data" class="table table-striped">
   <thead>
     <tr>
-      <th>Discipline Name</th>
-      <th>Type</th>
+      <th>Ergebineingabe</th>
+      <th>Disziplin Scoreboard</th>
     </tr>
   </thead>
   <tbody>
     {% for discipline in disciplinelist %}
       <tr>
-        <td>{{ discipline[1].Name }}</td>
-        <td>{{ discipline[1].type }}</td>
+        <td><a class="link" href="{{ url_for('discipline', discipline=discipline[1].Name) }}">{{ discipline[1].Name }} <br> Ergebnis eintragen...</a></td>
+        <td><a class="link" href="{{ url_for('result', discipline=discipline[1].Name) }}">{{ discipline[1].Name }} <br> Scoreboard...</a></td>
       </tr>
     {% endfor %}
   </tbody>

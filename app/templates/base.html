@@ -36,12 +36,18 @@
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('image_gallery') }}">Bildergallerie</a>
             </li>
+            <!--
             <li class="nav-item">
               <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+            </li>
+            -->
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('results') }}">Gesamtergebnis</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('admin_menu') }}">Admin</a>
             </li>
+            <!--
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-expanded="false">Dropdown</a>
               <ul class="dropdown-menu" aria-labelledby="dropdown01">
@@ -50,6 +56,7 @@
                 <li><a class="dropdown-item" href="#">Something else here</a></li>
               </ul>
             </li>
+            -->
             {% if current_user.is_authenticated %}
             <li class="nav-item">
               <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">User: {{current_user.UserName}}</a>
@@ -66,10 +73,12 @@
             </li>
             {% endif %}
           </ul>
+          <!--
           <form class="d-flex">
             <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
             <button class="btn btn-outline-success" type="submit">Search</button>
           </form>
+          -->
         </div>
       </div>
     </nav>
