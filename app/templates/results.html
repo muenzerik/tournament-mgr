@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ discipline }}{% endblock %}
+
+{% block main %}
+
+<h2>Gesamtresultat</h2>
+
+<p>TBD</p>
+
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Punkte</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for r in totalresults %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ r[0].Users.UserName }}</td>
+          <td>{{ r[1] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}

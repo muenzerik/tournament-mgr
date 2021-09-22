@@ -206,7 +206,71 @@ def discipline(discipline):
 def results():
     tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
     disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
-    return render_template('results.html', current_user=current_user, disciplinelist=disciplinelist)
+
+    #get table data from DB...
+    num_players = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournament.ID, TournamentsPlayersMap.status == 'active').count()
+    print('There are %d players', num_players)
+    players = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(TournamentsPlayersMap.ID_tournament == tournament.ID, TournamentsPlayersMap.status == 'active').order_by(asc(Users.UserName))
+
+    #initialize total ressults with 0
+    totalresults = [0] * num_players
+    totalresults = list(map(list, zip(players, totalresults)))
+
+    for d in disciplinelist:
+        if d[1].type == 'Single':
+            
+            #get table data from DB...
+            results = session.query(Results, Score, TournamentsPlayersMap, Users).join(Score, (Score.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID).order_by(asc(Score.Score))
+
+            if results is not None:
+                for i, r in enumerate(results):
+
+                    #find the user in totalresults list
+                    for player in totalresults:
+                        if player[0].Users.ID == r[3].ID:
+                            player[1] = player[1] + i + 1
+
+        elif d[1].type == 'OneVsOne':
+            
+            matrix = []
+            totals = []
+            for row, p in enumerate(players):
+                column = []
+                total = 0
+                for col, o in enumerate(players):
+                    if o == p:
+                        column.append('n/a')
+                    else:
+                        result = session.query(Results, MatchResult).join(MatchResult, (Results.ID == MatchResult.ID_result)).filter(Results.ID_players == p[0].ID, MatchResult.ID_players == o[0].ID).first()
+                        if result is not None:
+                            if result[1].match_result == 'win':
+                                column.append('1')
+                                total = total + 1
+                            elif result[1].match_result == 'lose':
+                                column.append('0')
+                            else:
+                                column.append('')
+                        else: 
+                            column.append('')
+                matrix.append(column)
+                totals.append(total)
+
+            disciplineresults = list(zip(players, totals))
+            print(disciplineresults)
+
+            disciplineresults = sorted(disciplineresults, key=lambda disciplineresults:disciplineresults[1])
+
+            for i, r in enumerate(disciplineresults):
+
+                #find the user in totalresults list
+                for player in totalresults:
+                    if player[0].Users.ID == r[0].Users.ID:
+                        player[1] = player[1] + i + 1
+
+
+    totalresults = sorted(totalresults, key=lambda totalresults:totalresults[1], reverse=True)
+
+    return render_template('results.html', current_user=current_user, disciplinelist=disciplinelist, totalresults=totalresults)
 
 
 @app.route('/disciplines/result/<discipline>', methods=['GET', 'POST'])
@@ -226,11 +290,6 @@ def result(discipline):
                 #get table data from DB...
                 results = session.query(Results, Score, TournamentsPlayersMap, Users).join(Score, (Score.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID).order_by(desc(Score.Score))
 
-#                session.query(Users).join(TournamentsPlayersMap, (Users.ID == TournamentsPlayersMap.ID_users)).filter(r[0].ID_players == TournamentsPlayersMap.ID).count()
-
-                for r in results:
-                    print(r)
-
                 return render_template('result_discipline_single.html', current_user=current_user, discipline=d, num_players=num_players, results=results)
             elif d[1].type == 'OneVsOne':
                 #get table data from DB...
@@ -241,7 +300,6 @@ def result(discipline):
                 matrix = []
                 totals = []
                 for row, p in enumerate(players):
-#                    opponents = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Users.ID != p[2].ID, TournamentsPlayersMap.status == 'active')
                     column = []
                     total = 0
                     for col, o in enumerate(players):
@@ -266,21 +324,6 @@ def result(discipline):
                 print(disciplineresults)
 
                 disciplineresults = sorted(disciplineresults, key=lambda disciplineresults:disciplineresults[1], reverse=True)
-
-
-
-
-                #get table data from DB...
-                #get all active players but current_user...
-                opponents = session.query(TournamentsPlayersMap, Users).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Users.ID != current_user.ID, TournamentsPlayersMap.status == 'active')
-
-                #get table data from DB...
-                results = session.query(Results, MatchResult, TournamentsPlayersMap, Users).join(MatchResult, (MatchResult.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID).order_by(asc(Users.UserName))
-
-#                session.query(Users).join(TournamentsPlayersMap, (Users.ID == TournamentsPlayersMap.ID_users)).filter(r[0].ID_players == TournamentsPlayersMap.ID).count()
-
-                for r in results:
-                    print(r)
 
                 return render_template('result_discipline_one_vs_one.html', current_user=current_user, discipline=d, players=players, matrix=matrix, disciplineresults=disciplineresults)
 
