@@ -44,9 +44,14 @@
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('results') }}">Gesamtergebnis</a>
             </li>
+            {% if current_user.is_authenticated and current_user.Role is not none %}
+            {% if 'admin' in current_user.Role %}
+
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('admin_menu') }}">Admin</a>
             </li>
+            {% endif %}
+            {% endif %}
             <!--
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-expanded="false">Dropdown</a>

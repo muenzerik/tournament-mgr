@@ -6,10 +6,13 @@
 
 <h2>Disziplinen</h2>
 
+{% if disciplinelist is not none %}
+
+{% if current_player.status == 'active' %}
 <table id="data" class="table table-striped">
   <thead>
     <tr>
-      <th>Ergebineingabe</th>
+      <th>Ergebniseingabe</th>
       <th>Disziplin Scoreboard</th>
     </tr>
   </thead>
@@ -22,5 +25,16 @@
     {% endfor %}
   </tbody>
 </table>
+{% else %}
+
+<p>Dein User Account wurde noch nicht dem Turnier hinzugefügt. Bitte kontaktiere den Admin.</p>
+
+{% endif %}
+
+{% else %}
+
+<p>Turnier noch nicht erstellt oder noch keine Disziplin eingestellt. Bitte kontaktiere den Admin.</p>
+
+{% endif %}
 
 {% endblock %}

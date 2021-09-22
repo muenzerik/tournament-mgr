@@ -53,8 +53,13 @@ def register():
 @login_required
 def disciplines():
     tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
-    disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
-    return render_template('disciplines.html', current_user=current_user, disciplinelist=disciplinelist)
+    if tournament is not None:
+        disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+        current_player = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournament.ID, TournamentsPlayersMap.ID_users == current_user.ID).first()
+    else:
+        disciplinelist = None
+        current_player = None
+    return render_template('disciplines.html', current_user=current_user, disciplinelist=disciplinelist, current_player=current_player)
 
 @app.route('/disciplines/<discipline>', methods=['GET', 'POST'])
 @login_required
@@ -205,7 +210,11 @@ def discipline(discipline):
 @login_required
 def results():
     tournament = session.query(Tournaments).order_by(desc(Tournaments.Season)).first()
-    disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+    if tournament is not None:
+        disciplinelist =  session.query(TournamentsDisciplinesMap, Disciplines).join(Disciplines, (TournamentsDisciplinesMap.ID_discipline == Disciplines.ID)).filter(TournamentsDisciplinesMap.ID_tournament == tournament.ID)
+    else:
+        disciplinelist = None
+        return render_template('results.html', current_user=current_user, disciplinelist=disciplinelist)  
 
     #get table data from DB...
     num_players = session.query(TournamentsPlayersMap).filter(TournamentsPlayersMap.ID_tournament == tournament.ID, TournamentsPlayersMap.status == 'active').count()
@@ -288,7 +297,7 @@ def result(discipline):
                 print('There are %d players', num_players)
 
                 #get table data from DB...
-                results = session.query(Results, Score, TournamentsPlayersMap, Users).join(Score, (Score.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID).order_by(desc(Score.Score))
+                results = session.query(Results, Score, TournamentsPlayersMap, Users).join(Score, (Score.ID_result == Results.ID)).join(TournamentsPlayersMap, (Results.ID_players == TournamentsPlayersMap.ID)).join(Users, (TournamentsPlayersMap.ID_users == Users.ID)).filter(Results.ID_discipline == d[1].ID, TournamentsDisciplinesMap.ID_tournament == tournament.ID, TournamentsPlayersMap.status == 'active').order_by(desc(Score.Score))
 
                 return render_template('result_discipline_single.html', current_user=current_user, discipline=d, num_players=num_players, results=results)
             elif d[1].type == 'OneVsOne':

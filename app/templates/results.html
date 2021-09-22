@@ -6,6 +6,7 @@
 
 <h2>Gesamtresultat</h2>
 
+{% if disciplinelist is not none %}
 <table class="table table-bordered">
     <thead>
       <tr>
@@ -24,5 +25,11 @@
         {% endfor %}
     </tbody>
   </table>
+
+{% else %}
+
+  <p>Gesamtresultat nicht darstellbar. Turnier noch nicht erstellt oder noch keine Disziplin eingestellt. Bitte kontaktiere den Admin.</p>
+  
+{% endif %}
 
 {% endblock %}
