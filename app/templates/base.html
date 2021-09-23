@@ -40,10 +40,12 @@
             <li class="nav-item">
               <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
             </li>
-            -->
+            
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('results') }}">Gesamtergebnis</a>
             </li>
+           -->
+
             {% if current_user.is_authenticated and current_user.Role is not none %}
             {% if 'admin' in current_user.Role %}
 

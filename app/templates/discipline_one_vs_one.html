@@ -22,7 +22,7 @@
             <form action="" method="post" novalidate>
                 {{ form.hidden_tag() }}
                 {{ form.result.label }}<br>
-                {{ form.result }}<br>
+                {{ form.result }}<br><br><br>
                 {% for error in form.result.errors %}
                 <span style="color: red;">[{{ error }}]</span>
                 {% endfor %}
